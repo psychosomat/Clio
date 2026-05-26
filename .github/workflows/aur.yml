@@ -60,9 +60,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Check if repo is empty or files changed
-          if [ -f PKGBUILD ] && [ -f .SRCINFO ] && git diff --quiet -- PKGBUILD .SRCINFO; then
-            echo "AUR package already up to date"
-            exit 0
+          if [ -f PKGBUILD ] && [ -f .SRCINFO ]; then
+            git add PKGBUILD .SRCINFO
+            if git diff --cached --quiet -- PKGBUILD .SRCINFO; then
+              echo "AUR package already up to date"
+              exit 0
+            fi
+            git reset
           fi
           git add PKGBUILD .SRCINFO
           git commit -m "Update to ${VERSION#v}"
