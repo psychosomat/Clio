@@ -1,0 +1,11 @@
+/clio
+
+build/
+dist/
+
+.vscode/
+.windsurf/
+.cursor/
+.agents/
+.opencode/
+skills-lock.json

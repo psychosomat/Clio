@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build and Publish Release Assets
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zstd dpkg-dev
+
+      - name: Make script executable
+        run: chmod +x scripts/package.sh
+
+      - name: Package Application
+        run: ./scripts/package.sh "$VERSION"
+
+      - name: Build source archive
+        run: |
+          mkdir -p dist
+          git archive --format=tar.gz --prefix="clio-${VERSION#v}/" -o "dist/clio-${VERSION#v}-source.tar.gz" "$VERSION"
+
+      - name: Create & Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/*.deb
+            dist/*.pkg.tar.zst
+            dist/*-source.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

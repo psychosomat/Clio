@@ -1,0 +1,62 @@
+name: Publish AUR
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+jobs:
+  publish-aur:
+    name: Update AUR package
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+      PACKAGE_NAME: clio
+      AUR_REPO: ssh://aur@aur.archlinux.org/clio.git
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH for AUR
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          test -n "$AUR_SSH_PRIVATE_KEY"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'EOF'
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur
+            User aur
+            StrictHostKeyChecking yes
+          EOF
+
+      - name: Generate AUR files
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          chmod +x scripts/render-aur.sh
+          SOURCE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}/clio-${VERSION#v}-source.tar.gz"
+          curl -fsSL "$SOURCE_URL" -o /tmp/clio-source.tar.gz
+          SOURCE_SHA="$(sha256sum /tmp/clio-source.tar.gz | awk '{print $1}')"
+          ./scripts/render-aur.sh "${VERSION#v}" "$SOURCE_URL" "$SOURCE_SHA"
+
+      - name: Push PKGBUILD to AUR
+        run: |
+          git clone "$AUR_REPO" aur-repo
+          cp dist/aur/PKGBUILD dist/aur/.SRCINFO aur-repo/
+          cd aur-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- PKGBUILD .SRCINFO; then
+            echo "AUR package already up to date"
+            exit 0
+          fi
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update to ${VERSION#v}"
+          git push origin HEAD:master
