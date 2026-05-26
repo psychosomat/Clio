@@ -18,7 +18,7 @@ cat > "${OUT_DIR}/PKGBUILD" <<EOF
 pkgname=${PACKAGE_NAME}
 pkgver=${VERSION}
 pkgrel=1
-pkgdesc="Keyboard-first terminal notes utility"
+pkgdesc="A lightning-fast, keyboard-driven TUI for taking Markdown notes in the terminal. Powered by Go & Bubble Tea."
 arch=('x86_64')
 url="https://github.com/${GITHUB_REPOSITORY:-clio/clio}"
 license=('MIT')
@@ -40,7 +40,7 @@ EOF
 
 cat > "${OUT_DIR}/.SRCINFO" <<EOF
 pkgbase = ${PACKAGE_NAME}
-	pkgdesc = Keyboard-first terminal notes utility
+	pkgdesc = A lightning-fast, keyboard-driven TUI for taking Markdown notes in the terminal. Powered by Go & Bubble Tea.
 	pkgver = ${VERSION}
 	pkgrel = 1
 	url = https://github.com/${GITHUB_REPOSITORY:-clio/clio}
