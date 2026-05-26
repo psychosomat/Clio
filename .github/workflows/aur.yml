@@ -59,7 +59,8 @@ jobs:
           cd aur-repo
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- PKGBUILD .SRCINFO; then
+          # Check if repo is empty or files changed
+          if [ -f PKGBUILD ] && [ -f .SRCINFO ] && git diff --quiet -- PKGBUILD .SRCINFO; then
             echo "AUR package already up to date"
             exit 0
           fi
