@@ -7,51 +7,94 @@
 <p align="center">
   <a href="https://github.com/psychosomat/Clio/releases"><img src="https://img.shields.io/github/v/release/psychosomat/Clio?style=flat-square&label=release&color=%23bd93f9" alt="Release"></a>
   <a href="https://aur.archlinux.org/packages/clio"><img src="https://img.shields.io/aur/version/clio?style=flat-square&label=AUR&color=%231793d1" alt="AUR"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff79c6?style=flat-square" alt="MIT"></a>
+  <a href="https://github.com/psychosomat/Clio/blob/main/LICENSE"><img src="https://img.shields.io/github/license/psychosomat/Clio?style=flat-square&color=%23ff79c6" alt="License"></a>
 </p>
 
-**Clio** is a TUI notes inbox built with [Bubble Tea](https://github.com/charmbracelet/bubbletea). Notes are plain Markdown files with YAML front matter — no database, no lock-in, keyboard-only.
+**Clio** is a keyboard-driven TUI notes app. Notes are plain Markdown files with YAML front matter — no database, no lock-in. Multi-pane interface with folders, live search, Markdown preview, and autosave.
 
 ## Features
 
-- **Instant** — loads hundreds of notes in milliseconds
-- **Portable** — all notes are plain `.md` files, editable by any tool
-- **Live search** — filters titles and bodies as you type
-- **Dracula theme** — polished UI with side-by-side preview
-- **Safe trash** — notes are renamed and moved, never permanently deleted
-- **Autosave** — saves automatically after a pause in typing
+- **Multi-pane** — folders, notes list, and rendered Markdown preview side by side
+- **Markdown editor** — full editor with line numbers, snippet insertion, and autosave
+- **Rich preview** — syntax-highlighted code blocks, Mermaid diagrams, math, wiki links, callouts
+- **Live search** — filters notes by title and body as you type
+- **Folders** — organize notes into virtual folders stored in front matter
+- **Archive** — toggle visibility of archived notes without deleting them
+- **Safe trash** — notes are moved to `trash/`, never permanently deleted
+- **Copy & paste** — duplicate notes within the app
+- **External editor** — open notes in `$EDITOR` or `nano`
+- **Reorder** — move notes up/down with `j`/`k`
+- **Tokyo Night** — default theme with full color customization via config or env vars
 
 ## Installation
 
 | Package | Command |
 |---------|---------|
 | AUR | `yay -S clio` |
+| Pacman | Download `.pkg.tar.zst` from [releases](https://github.com/psychosomat/Clio/releases) |
 | Debian/Ubuntu | Download `.deb` from [releases](https://github.com/psychosomat/Clio/releases) |
-| Go | `go install github.com/psychosomat/Clio/cmd/clio@latest` |
 | Source | see [Development](#development) |
 
 ## Usage
 
 ```
-clio            Open inbox
-clio new        Create a note immediately
-clio list       Open inbox (default)
-clio --help     Show help
-clio --dir      Custom notes directory
+clio              Launch interactive TUI
+clio new          Create a new note in editor mode
+clio list         List all note titles (non-interactive)
+clio <query>      Fuzzy-find a note and print its body
+clio -h, --help   Show help
+echo "text" | clio [title]   Save piped input as a new note
 ```
+
+### Browsing
 
 | Key | Action |
 |-----|--------|
+| `q`, `ctrl+c` | Quit |
+| `?` | Toggle help overlay |
+| `/` | Search / filter |
 | `n` | New note |
-| `Enter` | Open note |
+| `e` | Edit selected note |
+| `Enter` | Open selected note in editor |
+| `x` | Delete (move to trash) |
+| `c` | Copy note |
+| `p` | Paste note |
+| `r` | Rename note |
+| `R` | Move to folder |
+| `N` | Create folder |
 | `a` | Archive / unarchive |
-| `d` | Move to trash |
-| `/` | Search |
-| `q` | Quit |
-| `j`/`k`, `↑`/`↓` | Navigate |
-| `F2` | Toggle preview |
-| `F3`–`F9` | Insert code, table, checklist, quote, link, heading, rule |
-| `Esc` | Back to inbox |
+| `A` | Toggle show archived |
+| `j`, `k` | Move note down / up (reorder) |
+| `Tab`, `→` | Next pane |
+| `Shift+Tab`, `←` | Previous pane |
+| `F2` | Toggle preview pane |
+
+### Editing
+
+| Key | Action |
+|-----|--------|
+| `Esc` | Back to browsing (autosave) |
+| `F2` | Toggle Markdown preview |
+| `Ctrl+E` | Open in external editor |
+| `F3` | Insert code block |
+| `F4` | Insert table |
+| `F5` | Insert checklist |
+| `F6` | Insert quote |
+| `F7` | Insert link |
+| `F8` | Insert heading |
+| `F9` | Insert horizontal rule |
+
+## Configuration
+
+Config file at `~/.config/clio/config.yaml` (YAML):
+
+```yaml
+theme: tokyonight
+primary_color: "#bd93f9"
+default_language: text
+```
+
+All settings can be overridden with environment variables: `CLIO_THEME`, `CLIO_HOME`, `CLIO_PRIMARY_COLOR`, `CLIO_PRIMARY_COLOR_SUBDUED`, `CLIO_BRIGHT_GREEN`, `CLIO_GREEN`, `CLIO_BRIGHT_RED`, `CLIO_RED`, `CLIO_FOREGROUND`, `CLIO_BACKGROUND`, `CLIO_GRAY`, `CLIO_BLACK`, `CLIO_WHITE`, `CLIO_DEFAULT_LANGUAGE`.
 
 ## Storage
 
@@ -63,14 +106,18 @@ Files live under the [XDG](https://specifications.freedesktop.org/basedir-spec/b
 └── trash/     # Trashed notes
 ```
 
+Session state is persisted at `~/.local/state/clio/state.json`.
+
 Each note is a timestamped Markdown file with YAML front matter:
 
 ```markdown
 ---
 id: "20260526-001122-example-title"
-created_at: "2026-05-26T00:11:22+03:00"
-updated_at: "2026-05-26T00:15:04+03:00"
+created_at: 2026-05-26T00:11:22+03:00
+updated_at: 2026-05-26T00:15:04+03:00
+position: 0
 archived: false
+folder: notes
 ---
 
 Content starts here.
@@ -80,31 +127,33 @@ Being plain Markdown, notes work with any editor or sync service (Dropbox, Nextc
 
 ## Development
 
-Requirements: [Go](https://go.dev/dl/) (see `go.mod` for minimum version).
+Requirements: [Go](https://go.dev/dl/) 1.26.3+.
 
 ```bash
 git clone https://github.com/psychosomat/Clio.git
 cd Clio
-go run ./cmd/clio  # run it
+go run ./cmd/clio
 ```
 
-Tests span the storage, search, and editor layers:
+Tests:
 
 ```bash
-go test ./internal/...         # all internal tests
-go test ./internal/notes/...   # storage and search
-go test ./internal/app/...     # editor and view
+go test ./internal/...              # all tests
+go test ./internal/notes/...        # storage and search
+go test ./internal/app/...          # editor, preview, and view
+go test ./internal/markdownpreview/ # markdown renderer
 ```
 
 ### Project layout
 
 ```
-├── cmd/clio            Entrypoint, flags, config
-├── internal/notes      Domain model, YAML parsing, search
-├── internal/app        Bubble Tea model/update/view, styling
-└── scripts/            Release and packaging helpers
+├── cmd/clio                  Entrypoint, flags, config
+├── internal/notes            Domain model, YAML parsing, search, storage
+├── internal/app              Bubble Tea model/update/view, editor, keymap, theme
+├── internal/markdownpreview  Goldmark-based Markdown → ANSI renderer
+└── scripts/                  Release, packaging, and AUR helpers
 ```
 
 ## License
 
-[MIT](LICENSE)
+[MIT](./LICENSE)
