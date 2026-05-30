@@ -12,12 +12,13 @@ BUILD_LDFLAGS="-s -w -X main.version=${VERSION}"
 # Create build directories
 BUILD_DIR="build"
 DIST_DIR="dist"
+BIN_PATH="$BUILD_DIR/clio"
 rm -rf "$BUILD_DIR" "$DIST_DIR"
 mkdir -p "$BUILD_DIR" "$DIST_DIR"
 
 echo "=== 1. Building Clio Binary ==="
-go build -trimpath -ldflags "$BUILD_LDFLAGS" -o "$BUILD_DIR/clio" ./cmd/clio
-echo "Binary built successfully at $BUILD_DIR/clio"
+go build -a -trimpath -ldflags "$BUILD_LDFLAGS" -o "$BIN_PATH" ./cmd/clio
+echo "Binary built successfully at $BIN_PATH"
 
 echo "=== 2. Creating Debian Package (.deb) ==="
 DEB_ROOT="$BUILD_DIR/deb/${PACKAGE_NAME}_${VERSION}_${ARCH}"
@@ -25,7 +26,7 @@ mkdir -p "$DEB_ROOT/DEBIAN"
 mkdir -p "$DEB_ROOT/usr/bin"
 
 # Copy binary
-cp "$BUILD_DIR/clio" "$DEB_ROOT/usr/bin/clio"
+cp "$BIN_PATH" "$DEB_ROOT/usr/bin/clio"
 
 # Create control file
 cat <<EOF > "$DEB_ROOT/DEBIAN/control"
@@ -49,10 +50,10 @@ fi
 echo "=== 3. Creating Arch Linux Package (.pkg.tar.zst) ==="
 PACMAN_ROOT="$BUILD_DIR/pacman"
 mkdir -p "$PACMAN_ROOT/usr/bin"
-cp "$BUILD_DIR/clio" "$PACMAN_ROOT/usr/bin/clio"
+cp "$BIN_PATH" "$PACMAN_ROOT/usr/bin/clio"
 
 # Generate .PKGINFO metadata
-SIZE=$(du -sb "$BUILD_DIR/clio" | cut -f1)
+SIZE=$(du -sb "$BIN_PATH" | cut -f1)
 cat <<EOF > "$PACMAN_ROOT/.PKGINFO"
 pkgname = ${PACKAGE_NAME}
 pkgver = ${VERSION}-${RELEASE}
@@ -73,7 +74,8 @@ if command -v tar &> /dev/null && command -v zstd &> /dev/null; then
 else
     if command -v makepkg &> /dev/null; then
         mkdir -p "$BUILD_DIR/makepkg"
-        cp "$BUILD_DIR/clio" "$BUILD_DIR/makepkg/"
+        mkdir -p "$BUILD_DIR/makepkg/build"
+        cp "$BIN_PATH" "$BUILD_DIR/makepkg/build/clio"
         cat <<EOF > "$BUILD_DIR/makepkg/PKGBUILD"
 pkgname=${PACKAGE_NAME}
 pkgver=${VERSION}
@@ -82,7 +84,7 @@ pkgdesc="Terminal Quick Notes Utility"
 arch=('x86_64')
 license=('MIT')
 package() {
-    install -Dm755 "\${srcdir}/clio" "\${pkgdir}/usr/bin/clio"
+    install -Dm755 "\${srcdir}/build/clio" "\${pkgdir}/usr/bin/clio"
 }
 EOF
         cd "$BUILD_DIR/makepkg"

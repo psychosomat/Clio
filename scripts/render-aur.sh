@@ -29,12 +29,14 @@ sha256sums=('${SOURCE_SHA}')
 
 build() {
   cd "\${srcdir}/clio-\${pkgver}"
-  go build -trimpath -ldflags="-s -w -X main.version=\${pkgver}" -o clio ./cmd/clio
+  rm -f clio
+  mkdir -p build
+  go build -a -trimpath -ldflags="-s -w -X main.version=\${pkgver}" -o build/clio ./cmd/clio
 }
 
 package() {
   cd "\${srcdir}/clio-\${pkgver}"
-  install -Dm755 clio "\${pkgdir}/usr/bin/clio"
+  install -Dm755 build/clio "\${pkgdir}/usr/bin/clio"
 }
 EOF
 
