@@ -68,47 +68,32 @@ func defaultApp() App {
 }
 
 func defaultHome() string {
-	if home := firstEnv("CLIO_HOME", "NAP_HOME"); home != "" {
+	if home := os.Getenv("CLIO_HOME"); home != "" {
 		return home
 	}
-	clioHome := filepath.Join(xdg.DataHome, "clio")
-	legacyHome := filepath.Join(xdg.DataHome, "nap")
-	if pathExists(clioHome) || !pathExists(legacyHome) {
-		return clioHome
-	}
-	return legacyHome
+	return filepath.Join(xdg.DataHome, "clio")
 }
 
 func ConfigPath() string {
-	if path := firstEnv("CLIO_CONFIG", "NAP_CONFIG"); path != "" {
+	if path := os.Getenv("CLIO_CONFIG"); path != "" {
 		return path
 	}
-	clioPath := filepath.Join(xdg.ConfigHome, "clio", "config.yaml")
-	legacyPath := filepath.Join(xdg.ConfigHome, "nap", "config.yaml")
-	if pathExists(clioPath) || !pathExists(legacyPath) {
-		cfgPath, err := xdg.ConfigFile("clio/config.yaml")
-		if err == nil {
-			return cfgPath
-		}
-		return "config.yaml"
+	cfgPath, err := xdg.ConfigFile("clio/config.yaml")
+	if err == nil {
+		return cfgPath
 	}
-	return legacyPath
+	return "config.yaml"
 }
 
 func StatePath() string {
-	if path := firstEnv("CLIO_STATE", "NAP_STATE"); path != "" {
+	if path := os.Getenv("CLIO_STATE"); path != "" {
 		return path
 	}
-	clioPath := filepath.Join(xdg.StateHome, "clio", "state.json")
-	legacyPath := filepath.Join(xdg.StateHome, "nap", "state.json")
-	if pathExists(clioPath) || !pathExists(legacyPath) {
-		statePath, err := xdg.StateFile("clio/state.json")
-		if err == nil {
-			return statePath
-		}
-		return "state.json"
+	statePath, err := xdg.StateFile("clio/state.json")
+	if err == nil {
+		return statePath
 	}
-	return legacyPath
+	return "state.json"
 }
 
 func Load() App {
@@ -124,7 +109,6 @@ func Load() App {
 			applyFileConfig(&app, cfg)
 		}
 	}
-	applyLegacyEnv(&app)
 	if err := env.Parse(&app); err != nil {
 		return defaultApp()
 	}
@@ -186,41 +170,6 @@ func applyFileConfig(app *App, cfg fileConfig) {
 	}
 }
 
-func applyLegacyEnv(app *App) {
-	applyLegacyValue(&app.Home, "CLIO_HOME", "NAP_HOME")
-	applyLegacyValue(&app.File, "CLIO_FILE", "NAP_FILE")
-	applyLegacyValue(&app.Theme, "CLIO_THEME", "NAP_THEME")
-	applyLegacyValue(&app.PrimaryColor, "CLIO_PRIMARY_COLOR", "NAP_PRIMARY_COLOR")
-	applyLegacyValue(&app.PrimaryColorSubdued, "CLIO_PRIMARY_COLOR_SUBDUED", "NAP_PRIMARY_COLOR_SUBDUED")
-	applyLegacyValue(&app.BrightGreenColor, "CLIO_BRIGHT_GREEN", "NAP_BRIGHT_GREEN")
-	applyLegacyValue(&app.GreenColor, "CLIO_GREEN", "NAP_GREEN")
-	applyLegacyValue(&app.BrightRedColor, "CLIO_BRIGHT_RED", "NAP_BRIGHT_RED")
-	applyLegacyValue(&app.RedColor, "CLIO_RED", "NAP_RED")
-	applyLegacyValue(&app.ForegroundColor, "CLIO_FOREGROUND", "NAP_FOREGROUND")
-	applyLegacyValue(&app.BackgroundColor, "CLIO_BACKGROUND", "NAP_BACKGROUND")
-	applyLegacyValue(&app.GrayColor, "CLIO_GRAY", "NAP_GRAY")
-	applyLegacyValue(&app.BlackColor, "CLIO_BLACK", "NAP_BLACK")
-	applyLegacyValue(&app.WhiteColor, "CLIO_WHITE", "NAP_WHITE")
-}
-
-func applyLegacyValue(target *string, primaryKey, legacyKey string) {
-	if os.Getenv(primaryKey) != "" {
-		return
-	}
-	if value := os.Getenv(legacyKey); value != "" {
-		*target = value
-	}
-}
-
-func firstEnv(keys ...string) string {
-	for _, key := range keys {
-		if value := os.Getenv(key); value != "" {
-			return value
-		}
-	}
-	return ""
-}
-
 func expandHome(path string) string {
 	if !strings.HasPrefix(path, "~") {
 		return path
@@ -230,9 +179,4 @@ func expandHome(path string) string {
 		return path
 	}
 	return filepath.Join(home, strings.TrimPrefix(path, "~"))
-}
-
-func pathExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
 }

@@ -114,8 +114,6 @@ white: "#FFFFFF"
 
 All settings can be overridden with environment variables: `CLIO_THEME`, `CLIO_HOME`, `CLIO_PRIMARY_COLOR`, `CLIO_PRIMARY_COLOR_SUBDUED`, `CLIO_BRIGHT_GREEN`, `CLIO_GREEN`, `CLIO_BRIGHT_RED`, `CLIO_RED`, `CLIO_FOREGROUND`, `CLIO_BACKGROUND`, `CLIO_GRAY`, `CLIO_BLACK`, `CLIO_WHITE`.
 
-Legacy `NAP_*` environment variables are also supported for backward compatibility.
-
 ## Storage
 
 Files live under the [XDG](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) data directory:
