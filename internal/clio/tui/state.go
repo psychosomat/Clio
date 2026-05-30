@@ -1,4 +1,4 @@
-package app
+package tui
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/adrg/xdg"
+	appconfig "clio/internal/clio/config"
 )
 
 type State struct {
@@ -24,27 +24,20 @@ func (s State) Save() error {
 }
 
 func defaultState() string {
-	if c := os.Getenv("CLIO_STATE"); c != "" {
-		return c
-	}
-	statePath, err := xdg.StateFile("clio/state.json")
-	if err != nil {
-		return "state.json"
-	}
-	return statePath
+	return appconfig.StatePath()
 }
 
-func ReadState() State {
+func readState() State {
 	var s State
 	fi, err := os.Open(defaultState())
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return s
 	}
-	if fi != nil {
-		defer fi.Close()
-		if err := json.NewDecoder(fi).Decode(&s); err != nil {
-			return s
-		}
+	defer fi.Close()
+
+	if err := json.NewDecoder(fi).Decode(&s); err != nil {
+		return s
 	}
+
 	return s
 }

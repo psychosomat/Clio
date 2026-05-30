@@ -1,9 +1,12 @@
-package app
+package tui
 
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
+
+	appdomain "clio/internal/clio/domain"
 
 	"github.com/aquilax/truncate"
 	"github.com/charmbracelet/bubbles/list"
@@ -11,9 +14,17 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
+type NoteItem struct {
+	appdomain.Note
+}
+
+func (n NoteItem) FilterValue() string {
+	return n.Note.Notebook + "/" + n.Note.Title + "\n" + "+" + strings.Join(n.Note.Tags, "+")
+}
+
 type noteDelegate struct {
 	styles NotesBaseStyle
-	state  browseState
+	state  state
 }
 
 func (d noteDelegate) Height() int {
@@ -26,10 +37,10 @@ func (d noteDelegate) Spacing() int {
 
 func (d noteDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd {
 	return func() tea.Msg {
-		if n, ok := m.SelectedItem().(Note); ok {
-			return updateContentMsg(n)
+		if m.SelectedItem() == nil {
+			return nil
 		}
-		return nil
+		return updateContentMsg{note: m.SelectedItem().(NoteItem).Note}
 	}
 }
 
@@ -37,28 +48,34 @@ func (d noteDelegate) Render(w io.Writer, m list.Model, index int, item list.Ite
 	if item == nil {
 		return
 	}
-	n, ok := item.(Note)
+	n, ok := item.(NoteItem)
 	if !ok {
 		return
 	}
 
 	titleStyle := d.styles.SelectedTitle
 	subtitleStyle := d.styles.SelectedSubtitle
-	if d.state == copyVisual {
+	if d.state == copyingState {
 		titleStyle = d.styles.CopiedTitle
 		subtitleStyle = d.styles.CopiedSubtitle
-	} else if d.state == deleteConfirm {
+	} else if d.state == deletingState {
 		titleStyle = d.styles.DeletedTitle
 		subtitleStyle = d.styles.DeletedSubtitle
 	}
 
 	if index == m.Index() {
-		fmt.Fprintln(w, " "+titleStyle.Render("▸ "+truncate.Truncate(n.Title, 28, "...", truncate.PositionEnd)))
-		fmt.Fprint(w, " "+subtitleStyle.Render("  "+n.Folder+" • "+humanizeTime(n.Date)))
+		fmt.Fprintln(w, "  "+titleStyle.Render(truncate.Truncate(n.Note.Title, 30, "...", truncate.PositionEnd)))
+		fmt.Fprint(w, "  "+subtitleStyle.Render(n.Note.Notebook+" • "+humanizeTime(n.Note.UpdatedAt)))
 		return
 	}
-	fmt.Fprintln(w, " "+d.styles.UnselectedTitle.Render("  "+truncate.Truncate(n.Title, 28, "...", truncate.PositionEnd)))
-	fmt.Fprint(w, " "+d.styles.UnselectedSubtitle.Render("  "+n.Folder+" • "+humanizeTime(n.Date)))
+	fmt.Fprintln(w, "  "+d.styles.UnselectedTitle.Render(truncate.Truncate(n.Note.Title, 30, "...", truncate.PositionEnd)))
+	fmt.Fprint(w, "  "+d.styles.UnselectedSubtitle.Render(n.Note.Notebook+" • "+humanizeTime(n.Note.UpdatedAt)))
+}
+
+type Folder string
+
+func (f Folder) FilterValue() string {
+	return string(f)
 }
 
 type folderDelegate struct{ styles FoldersBaseStyle }
@@ -80,8 +97,9 @@ func (d folderDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 	if !ok {
 		return
 	}
+	fmt.Fprint(w, "  ")
 	if index == m.Index() {
-		fmt.Fprint(w, d.styles.Selected.Render("▸ "+string(f)))
+		fmt.Fprint(w, d.styles.Selected.Render("→ "+string(f)))
 		return
 	}
 	fmt.Fprint(w, d.styles.Unselected.Render("  "+string(f)))
