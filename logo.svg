@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120" role="img" aria-labelledby="title desc">
+  <title id="title">Clio</title>
+  <desc id="desc">keyboard-first terminal notes inbox</desc>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#82AAFF" />
+      <stop offset="100%" stop-color="#FF5370" />
+    </linearGradient>
+  </defs>
+  <text x="200" y="72" font-family="ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace" font-size="64" font-weight="900" text-anchor="middle" fill="url(#g)">Clio</text>
+  <text x="200" y="98" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#676E95" text-anchor="middle">keyboard-first terminal notes inbox</text>
+</svg>

@@ -1,13 +1,13 @@
 ![preview](./preview.png)
 
 <p align="center">
-  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='120' viewBox='0 0 400 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2382AAFF'/%3E%3Cstop offset='100%25' style='stop-color:%23FF5370'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='200' y='72' font-family='ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,monospace' font-size='64' font-weight='900' text-anchor='middle' fill='url(%23g)'%3EClio%3C/text%3E%3Ctext x='200' y='98' font-family='system-ui,-apple-system,sans-serif' font-size='14' fill='%23676E95' text-anchor='middle'%3Ekeyboard-first terminal notes inbox%3C/text%3E%3C/svg%3E" alt="Clio">
+  <img src="./logo.svg" alt="Clio">
 </p>
 
 <p align="center">
   <a href="https://github.com/psychosomat/Clio/releases"><img src="https://img.shields.io/github/v/release/psychosomat/Clio?style=flat-square&label=release&color=%2382AAFF" alt="Release"></a>
   <a href="https://aur.archlinux.org/packages/clio"><img src="https://img.shields.io/aur/version/clio?style=flat-square&label=AUR&color=%23C792EA" alt="AUR"></a>
-  <a href="https://github.com/psychosomat/Clio/blob/main/LICENSE"><img src="https://img.shields.io/github/license/psychosomat/Clio?style=flat-square&color=%23FF5370" alt="License"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/psychosomat/Clio?style=flat-square&color=%23FF5370" alt="License"></a>
 </p>
 
 **Clio** is a keyboard-driven TUI notes app. Notes are plain files organized into notebooks — no database, no lock-in. Three-pane interface with notebooks, note list, content view, inline Markdown editing with live preview, and fuzzy search.
@@ -24,7 +24,6 @@
 - **Rename & move** — rename notes, change notebook, set file format
 - **Snippet insertion** — quick-insert code blocks, tables, checklists, quotes, and links
 - **Material Palenight** — default theme with full color customization via config or env vars
-
 
 ## Installation
 
